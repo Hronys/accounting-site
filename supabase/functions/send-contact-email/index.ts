@@ -5,6 +5,7 @@ const allowedOrigins = new Set([
     .filter(Boolean),
   'http://localhost:5173',
 ]);
+const contactRecipient = 'officeivanov94@gmail.com';
 
 function jsonResponse(body: Record<string, unknown>, status: number, origin: string) {
   return new Response(JSON.stringify(body), {
@@ -47,7 +48,7 @@ Deno.serve(async (request) => {
   if (request.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405, origin);
 
   const apiKey = Deno.env.get('BREVO_API_KEY');
-  const from = Deno.env.get('CONTACT_FROM_EMAIL') ?? 'nikolayivanovhome@gmail.com';
+  const from = 'officeivanov94@gmail.com';
   if (!apiKey) {
     console.error('Missing BREVO_API_KEY function secret.');
     return jsonResponse({ error: 'Email is not configured' }, 503, origin);
@@ -74,7 +75,7 @@ Deno.serve(async (request) => {
     return jsonResponse({ error: 'Please check the form fields' }, 400, origin);
   }
 
-  const senderName = Deno.env.get('CONTACT_FROM_NAME') ?? '\u0411\u0430\u043b\u0430\u043d\u0441';
+  const senderName = '\u0418\u0432\u0430\u043d\u043e\u0432 \u0410\u043a\u0430\u0443\u043d\u0442\u0438\u043d\u0433';
   const messageContent = message || '(\u043d\u044f\u043c\u0430 \u0434\u043e\u043f\u044a\u043b\u043d\u0438\u0442\u0435\u043b\u043d\u043e \u0441\u044a\u043e\u0431\u0449\u0435\u043d\u0438\u0435)';
   const labels = {
     name: '\u0418\u043c\u0435',
@@ -97,7 +98,7 @@ Deno.serve(async (request) => {
       },
       body: JSON.stringify({
         sender: { email: from, name: senderName },
-        to: [{ email: 'nikolayivanovhome@gmail.com' }],
+        to: [{ email: contactRecipient }],
         replyTo: { email },
         subject: `${labels.subject}: ${name}`,
         textContent,
