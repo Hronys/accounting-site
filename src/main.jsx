@@ -25,18 +25,21 @@ function mergeChatMessages(current, incoming) {
 const services = [
   {
     number: '01',
+    href: '/uslugi/online-schetovodstvo/',
     title: 'Онлайн счетоводно обслужване',
     description: 'Процесът започва с изпращане на необходимите счетоводни документи по имейл, Viber или чрез електронната система за документооборот. Получените документи се преглеждат, систематизират и обработват съобразно дейността на Вашата фирма. Ние следим за необходимите счетоводни и данъчни срокове и подготвяме съответните справки, декларации и отчети. При необходимост от допълнителна информация или документи се свързваме с Вас дистанционно. По този начин счетоводното обслужване се извършва изцяло онлайн, бързо, организирано и без необходимост от посещение в офис.',
     symbol: '↗',
   },
   {
     number: '02',
+    href: '/uslugi/trz-i-lichen-sastav/',
     title: 'ТРЗ и личен състав',
     description: 'Заплати, договори и администриране на екипа — навреме и коректно. Поемаме цялостното администриране на трудовите и осигурителните отношения във Вашата фирма. Изготвяме трудови договори, допълнителни споразумения, заповеди и необходимите документи за персонала. Обработваме месечните възнаграждения и изчисляваме дължимите осигуровки и данъци. Подготвяме и подаваме необходимите декларации и документи в съответните срокове. Целта ни е да осигурим коректно и навременно ТРЗ обслужване, за да можете да се концентрирате върху развитието на бизнеса си.',
     symbol: '✳',
   },
   {
     number: '03',
+    href: '/uslugi/danachni-konsultacii/',
     title: 'Данъчни консултации',
     description: 'Предоставяме данъчни консултации, съобразени с конкретната дейност и ситуация на Вашия бизнес. Разясняваме приложимите данъчни правила и възможните последици при вземането на конкретни решения. Съдействаме при въпроси, свързани с ДДС, корпоративното и подоходното облагане и текущите данъчни задължения. Търсим практични и законосъобразни решения, съобразени с действащото законодателство. Целта ни е да разполагате с ясна информация и сигурна основа за вземане на информирани бизнес решения.',
     symbol: '◉',
@@ -471,8 +474,8 @@ function App() {
             {services.map((service) => (
               <article className="service-card" key={service.number}>
                 <div className="service-top"><span>{service.number} / 03</span><span className="service-symbol">{service.symbol}</span></div>
-                <h3>{service.title}</h3><p>{service.description}</p>
-                <a href="#contact" aria-label={`Научете повече за ${service.title}`}><ArrowUpRight size={18} /></a>
+                <h3><a href={service.href}>{service.title}</a></h3><p>{service.description}</p>
+                <a href={service.href} aria-label={`Научете повече за ${service.title}`}><ArrowUpRight size={18} /></a>
               </article>
             ))}
           </div>
@@ -573,6 +576,17 @@ function App() {
       <footer className="site-footer"><Brand footer /><span>© 2025 Иванов акаунтинг · Счетоводни услуги</span><div><a href="#contact">Поверителност</a><a href="mailto:hello@balans.bg">Имейл</a><a href="#home">Нагоре ↑</a></div></footer>
     </>
   );
+}
+
+if (window.location.pathname.replace(/\/+$/, '') === '/staff-chat') {
+  document.title = 'Вътрешен чат — Иванов Акаунтинг';
+  let robots = document.querySelector('meta[name="robots"]');
+  if (!robots) {
+    robots = document.createElement('meta');
+    robots.name = 'robots';
+    document.head.append(robots);
+  }
+  robots.content = 'noindex, nofollow';
 }
 
 createRoot(document.getElementById('root')).render(
