@@ -14,6 +14,8 @@ import './style.css';
 import { supabase } from './lib/supabase.js';
 import StaffChat from './StaffChat.jsx';
 
+const ADMIN_PRESENCE_GRACE_MS = 45_000;
+
 function mergeChatMessages(current, incoming) {
   const messagesById = new Map(current.map((message) => [message.id, message]));
   incoming.forEach((message) => messagesById.set(message.id, message));
@@ -203,6 +205,7 @@ function App() {
     let active = true;
     let channel;
     let offlineTimer;
+    let handleVisibilityChange;
     async function watchAdminPresence() {
       let { data: sessionData, error } = await supabase.auth.getSession();
       if (error) {
@@ -235,24 +238,27 @@ function App() {
           window.clearTimeout(offlineTimer);
           offlineTimer = window.setTimeout(() => {
             if (active) setAdminOnline(false);
-          }, 15000);
+          }, ADMIN_PRESENCE_GRACE_MS);
         }
       };
 
       channel
         .on('presence', { event: 'sync' }, syncPresence)
-        .on('presence', { event: 'join' }, syncPresence)
-        .on('presence', { event: 'leave' }, syncPresence)
         .subscribe((status, error) => {
           if (status === 'SUBSCRIBED') syncPresence();
           else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
             window.clearTimeout(offlineTimer);
             offlineTimer = window.setTimeout(() => {
               if (active) setAdminOnline(false);
-            }, 15000);
+            }, ADMIN_PRESENCE_GRACE_MS);
             console.error('Chat admin presence channel failed:', status, error);
           }
         });
+
+      handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') syncPresence();
+      };
+      document.addEventListener('visibilitychange', handleVisibilityChange);
     };
 
     watchAdminPresence();
@@ -260,6 +266,9 @@ function App() {
     return () => {
       active = false;
       window.clearTimeout(offlineTimer);
+      if (handleVisibilityChange) {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
       setAdminOnline(false);
       if (channel) supabase.removeChannel(channel);
     };

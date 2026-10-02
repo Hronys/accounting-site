@@ -164,27 +164,31 @@ export default function StaffChat() {
   useEffect(() => {
     if (!user || !staffSupabase) return undefined;
 
+    // Give each admin browser tab its own presence key. Reusing user.id makes
+    // simultaneous tabs overwrite one another and can produce false leave events.
+    const presenceKey = `${user.id}:${window.crypto.randomUUID()}`;
     const channel = staffSupabase.channel('chat-admin-presence', {
-      config: { private: true, presence: { key: user.id, enabled: true } },
+      config: { private: true, presence: { key: presenceKey, enabled: true } },
     });
     const publishPresence = async () => {
       const trackStatus = await channel.track({ role: 'admin', user_id: user.id });
       if (trackStatus !== 'ok') console.error('Could not publish chat admin presence:', trackStatus);
     };
+    const republishPresence = () => {
+      if (document.visibilityState === 'visible') publishPresence();
+    };
     channel.subscribe(async (status, error) => {
       if (status === 'SUBSCRIBED') {
         await publishPresence();
-      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
         console.error('Chat admin presence channel failed:', status, error);
       }
     });
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') publishPresence();
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
+    document.addEventListener('visibilitychange', republishPresence);
+    window.addEventListener('focus', republishPresence);
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('visibilitychange', republishPresence);
+      window.removeEventListener('focus', republishPresence);
       channel.untrack().catch(() => {}).finally(() => staffSupabase.removeChannel(channel));
     };
   }, [user]);
